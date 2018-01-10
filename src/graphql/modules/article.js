@@ -1,3 +1,7 @@
+const { withFilter } = require('graphql-subscriptions');
+
+const pubsub = require('../pubsub');
+
 const type = `
   input ArticleCreateInput {
     title: String,
@@ -18,6 +22,10 @@ const type = `
   extend type Mutation {
     addArticle(input: ArticleCreateInput!): Article
   }
+  extend type Subscription {
+    articleAdded: Article
+    articleUpdated(id: String!): Article
+  }
 `;
 
 const resolver = {
@@ -31,7 +39,27 @@ const queries = {
 }
 
 const mutations = {
-  addArticle: (_, { input }, ctx) => ctx.feathers.service('articles').create(input)
+  addArticle: async (_, { input }, ctx) => {
+    article = await ctx.feathers.service('articles').create(input);
+
+    pubsub.publish('articleAdded', article);
+
+    return article;
+  }
+}
+
+const subscription = {
+  articleAdded: {
+      subscribe: () => pubsub.asyncIterator(SUB_ARTICLE_ADDED)
+  },
+  articleUpdated: {
+      subscribe: withFilter(
+          () => pubsub.asyncIterator(SUB_ARTICLE_ADDED),
+          (payload, variables) => {
+              return payload.id === variables.id;
+          }
+      )
+  }
 }
 
 module.exports = { type, resolver, mutations, queries };

@@ -6,6 +6,7 @@ const helmet = require('helmet');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const os = require('os');
+const { createServer } = require('http');
 
 const feathers = require('feathers');
 const configuration = require('feathers-configuration');
@@ -42,17 +43,6 @@ app.use('/', feathers.static(app.get('public')));
 
 app.configure(hooks());
 app.configure(rest());
-app.configure(socketio(function(io){
-
-    new SubscriptionServer({
-        execute,
-        subscribe,
-        schema
-      }, {
-        server: io,
-        path: '/subscriptions',
-      });
-}));
 
 app.configure(middleware);
 app.configure(services);
@@ -61,5 +51,21 @@ app.use(notFound());
 app.use(handler());
 
 app.hooks(appHooks);
+
+const ws = createServer();
+
+ws.listen(3040, () => {
+  console.log(`Apollo Server WS is now running on ws://localhost:3040`);
+  
+  new SubscriptionServer({
+    execute,
+    subscribe,
+    schema,
+    onConnect: () => console.log("New client")
+  }, {
+    server: ws,
+    path: '/subscriptions',
+  });
+});
 
 module.exports = app;
