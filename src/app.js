@@ -16,10 +16,14 @@ const socketio = require('feathers-socketio');
 const handler = require('feathers-errors/handler');
 const notFound = require('feathers-errors/not-found');
 
+const { execute, subscribe } = require('graphql');
+const { SubscriptionServer } = require('subscriptions-transport-ws');
+
 const middleware = require('./middleware');
 const services = require('./services');
 const graphql = require('./graphql');
 const appHooks = require('./app.hooks');
+const schema = require('./graphql/schema');
 
 mongoose.Promise = global.Promise;
 mongoose.connect('mongodb://localhost:27017/feathers-dev-api');
@@ -38,9 +42,17 @@ app.use('/', feathers.static(app.get('public')));
 
 app.configure(hooks());
 app.configure(rest());
-// app.configure(socketio(function(io){
-//   io.on('connection', socket => socket.emit('networkInterfaces', os.networkInterfaces()));
-// }));
+app.configure(socketio(function(io){
+
+    new SubscriptionServer({
+        execute,
+        subscribe,
+        schema
+      }, {
+        server: io,
+        path: '/subscriptions',
+      });
+}));
 
 app.configure(middleware);
 app.configure(services);

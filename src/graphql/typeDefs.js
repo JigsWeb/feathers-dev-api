@@ -1,11 +1,10 @@
-const { type: Schema }  = require('./modules/schema');
-const { type: Query }  = require('./modules/query');
-const { type: Mutation }  = require('./modules/mutation');
+const { type: Query }  = require('./root/query');
+const { type: Mutation }  = require('./root/mutation');
+
 const { type: User }  = require('./modules/user');
 const { type: Article }  = require('./modules/article');
 
 module.exports = [
-    Schema,
     Query,
     Mutation,
     User,
