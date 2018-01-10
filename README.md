@@ -1,57 +1,43 @@
-# feathers-dev-api
-
-> API Lab
-
-## About
-
-This project uses [Feathers](http://feathersjs.com). An open source web framework for building modern real-time applications.
-
-## Getting Started
-
-Getting up and running is as easy as 1, 2, 3.
-
-1. Make sure you have [NodeJS](https://nodejs.org/) and [npm](https://www.npmjs.com/) installed.
-2. Install your dependencies
-
-    ```
-    cd path/to/feathers-dev-api; npm install
-    ```
-
-3. Start your app
-
-    ```
-    npm start
-    ```
-
-## Testing
-
-Simply run `npm test` and all your tests in the `test/` directory will be run.
-
-## Scaffolding
-
-Feathers has a powerful command line interface. Here are a few things it can do:
+Mutation
 
 ```
-$ npm install -g feathers-cli             # Install Feathers CLI
-
-$ feathers generate service               # Generate a new Service
-$ feathers generate hook                  # Generate a new Hook
-$ feathers generate model                 # Generate a new Model
-$ feathers help                           # Show all commands
+mutation { addUser(input: { $email, $firstName, $lastName }) { id, email }}
+mutation { addArticle(input: { $_user, $title, $text }) { id, title }}
 ```
 
-## Help
+Query
 
-For more information on all the things you can do with Feathers visit [docs.feathersjs.com](http://docs.feathersjs.com).
+```
+query { user($id) { id, email, firstName }} 
+query { users { id, email, firstName }} 
+query { article($id) { id, author, title, text }} 
+query { articles { author, title }} 
+```
 
-## Changelog
+_user étant l'id string d'un user, #obvious
 
-__0.1.0__
+Roadmap:
 
-- Initial release
+    - Commencer à regarder coté clients
+        - https://dev-blog.apollodata.com/full-stack-react-graphql-tutorial-582ac8d24e3b (Pas mal, a la fin sa parle des subscriptions)
+        - https://dev-blog.apollodata.com/the-future-of-state-management-dd410864cae2 (Remplacé redux qui deviens assez tricky)
+    - Implémenter l'authentification
+    - Finir d'implétenter les mutations basique, update et delete.
+    - Revoir l'architecture des modules, bien séparé les rootModules(Query, Mutation, Subscription) au subModules (Article, User)
+    - J'ai tenté de reprendre l'architecture duck <3
+    - Impléter dataloader, pour l'instant les requêtes sont pas compliqués mais bon..
+    - Implémenter un systeme de caching (redis ?)
+    - Fuck la redondance
 
-## License
 
-Copyright (c) 2016
+Questions
 
-Licensed under the [MIT license](LICENSE).
+    - Faut-il vraiment utiliser Apollo sachant que le plugin feathers est useless voir limitant (vraiment)
+        - https://github.com/chentsulin/awesome-graphql#lib-js (Les libs qui tournent autour de GraphQL)
+        - https://facebook.github.io/relay/docs/en/new-in-relay-modern.html (Relay / Apollo that the question)
+        - Si on regarde la doc d'apollo, j'ai l'impression que c'est surtout utile aux personnes qui font de la supervision
+            - Seulement une methode qui permet de d'executer un schema stringifié
+    - Faudrait trouver un moyen de ne pas exposer l'api
+    - Je suis fatigué salut
+
+Si tu as des idées, balance
