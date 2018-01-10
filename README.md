@@ -1,3 +1,14 @@
+Requirement
+
+MongoDB ma geule
+
+Install and run
+
+```
+npm install
+npm start
+```
+
 Mutation
 
 ```
