@@ -61,7 +61,6 @@ ws.listen(3040, () => {
     execute,
     subscribe,
     schema,
-    onConnect: () => console.log("New client")
   }, {
     server: ws,
     path: '/subscriptions',

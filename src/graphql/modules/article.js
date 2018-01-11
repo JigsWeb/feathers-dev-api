@@ -48,13 +48,15 @@ const mutations = {
   }
 }
 
-const subscription = {
+const subscriptions = {
   articleAdded: {
-      subscribe: () => pubsub.asyncIterator(SUB_ARTICLE_ADDED)
+    subscribe: (...rest) => {
+      return pubsub.asyncIterator('articleAdded');
+    }
   },
   articleUpdated: {
       subscribe: withFilter(
-          () => pubsub.asyncIterator(SUB_ARTICLE_ADDED),
+          () => pubsub.asyncIterator('articleUpdated'),
           (payload, variables) => {
               return payload.id === variables.id;
           }
@@ -62,4 +64,4 @@ const subscription = {
   }
 }
 
-module.exports = { type, resolver, mutations, queries };
+module.exports = { type, resolver, mutations, queries, subscriptions };

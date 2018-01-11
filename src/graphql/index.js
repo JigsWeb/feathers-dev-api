@@ -11,7 +11,9 @@ module.exports = function() {
     schema,
     context: new Context(app)
   })));
+
   app.use('/graphiql', graphiqlConnect({
     endpointURL: '/graphql',
+    subscriptionsEndpoint: `ws://localhost:3040/subscriptions`,
   }));
 };
