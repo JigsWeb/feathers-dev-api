@@ -1,12 +1,25 @@
 const { withFilter } = require('graphql-subscriptions');
 
-const pubsub = require('../pubsub');
-
 const type = `
   input ArticleCreateInput {
-    title: String,
-    text: String,
+    title: String
+    text: String
     _user: String
+  }
+
+  input ArticleUpdateInput {
+    id: String
+    title: String
+    text: String
+  }
+
+  input ArticleDeleteInput {
+    id: String
+  }
+
+  type ArticleSubscription {
+    type: String,
+    data: Article
   }
 
   type Article {
@@ -21,10 +34,13 @@ const type = `
   }
   extend type Mutation {
     addArticle(input: ArticleCreateInput!): Article
+    updateArticle(input: ArticleUpdateInput!): Article
+    deleteArticle(input: ArticleDeleteInput): Article
   }
   extend type Subscription {
     articleAdded: Article
-    articleUpdated(id: String!): Article
+    articleUpdated(id: String!): Article,
+    article: ArticleSubscription
   }
 `;
 
@@ -42,25 +58,32 @@ const mutations = {
   addArticle: async (_, { input }, ctx) => {
     article = await ctx.feathers.service('articles').create(input);
 
-    pubsub.publish('articleAdded', article);
+    ctx.pubsub.publish('articleAdded', { type: "add", data: article });
+
+    return article;
+  },
+  updateArticle: async (_, { input: { id, ...data } }, ctx) => {
+    article = await ctx.feathers.service('articles').update(id, data);
+
+    ctx.pubsub.publish('articleUpdated', { type: "update", data: article });
+
+    return article;
+  },
+  deleteArticle: async (_, { input: { id } }, ctx) => {
+    article = await ctx.feathers.service('articles').remove(id);
+
+    ctx.pubsub.publish('articleRemoved', { type: "delete", data: article });
 
     return article;
   }
 }
 
 const subscriptions = {
-  articleAdded: {
-    subscribe: (...rest) => {
-      return pubsub.asyncIterator('articleAdded');
+  article: {
+    resolve: payload => payload,
+    subscribe: (_, args, ctx) => {
+      return ctx.pubsub.asyncIterator(['articleAdded', 'articleUpdated', 'articleRemoved'])
     }
-  },
-  articleUpdated: {
-      subscribe: withFilter(
-          () => pubsub.asyncIterator('articleUpdated'),
-          (payload, variables) => {
-              return payload.id === variables.id;
-          }
-      )
   }
 }
 
