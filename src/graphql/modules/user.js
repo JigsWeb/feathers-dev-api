@@ -11,6 +11,7 @@ const type = `
         firstName: String
         lastName: String
         articles: [Article]
+        comments: [Comment]
     }
     extend type Query {
         user(id: String!): User
@@ -24,6 +25,7 @@ const type = `
 const resolver = {
     id: (user) => user._id.toString(),
     articles: (user, args, ctx) => ctx.feathers.service('articles').find({ _user: user.id }),
+    comments: (user, args, ctx) => ctx.feathers.service('comments').find({ _user: user.id })
 }
 
 const queries = {

@@ -19,7 +19,7 @@ const type = `
 
   type ArticleSubscription {
     type: String,
-    data: Article
+    payload: Article
   }
 
   type Article {
@@ -27,6 +27,7 @@ const type = `
     title: String
     text: String
     author: User
+    comments: [Comment]
   }
   extend type Query {
     article(id: String!): Article
@@ -38,8 +39,6 @@ const type = `
     deleteArticle(input: ArticleDeleteInput): Article
   }
   extend type Subscription {
-    articleAdded: Article
-    articleUpdated(id: String!): Article,
     article: ArticleSubscription
   }
 `;
@@ -47,6 +46,13 @@ const type = `
 const resolver = {
   id: (article) => article._id.toString(),
   author: (article, args, ctx) => ctx.feathers.service('users').get(article._user),
+  comments: async (article, args, ctx) => {
+    const comments = await ctx.feathers.service('comments').find({ query: { _article: article._id } });
+
+    console.log(comments.length)
+
+    return comments
+  }
 }
 
 const queries = {
@@ -58,21 +64,21 @@ const mutations = {
   addArticle: async (_, { input }, ctx) => {
     article = await ctx.feathers.service('articles').create(input);
 
-    ctx.pubsub.publish('articleAdded', { type: "add", data: article });
+    ctx.pubsub.publish('articleAdded', { type: "add", payload: article });
 
     return article;
   },
   updateArticle: async (_, { input: { id, ...data } }, ctx) => {
     article = await ctx.feathers.service('articles').update(id, data);
 
-    ctx.pubsub.publish('articleUpdated', { type: "update", data: article });
+    ctx.pubsub.publish('articleUpdated', { type: "update", payload: article });
 
     return article;
   },
   deleteArticle: async (_, { input: { id } }, ctx) => {
     article = await ctx.feathers.service('articles').remove(id);
 
-    ctx.pubsub.publish('articleRemoved', { type: "delete", data: article });
+    ctx.pubsub.publish('articleRemoved', { type: "delete", payload: article });
 
     return article;
   }

@@ -4,11 +4,13 @@ const { resolver: Subscription } = require('./root/subscription');
 
 const { resolver: User }  = require('./modules/user');
 const { resolver: Article }  = require('./modules/article');
+const { resolver: Comment } = require('./modules/comment');
 
 module.exports = {
   Query,
   Mutation,
   Subscription,
+  Comment,
   User,
-  Article
+  Article,
 }
